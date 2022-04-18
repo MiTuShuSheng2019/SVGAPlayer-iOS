@@ -37,9 +37,9 @@
 // NSMapTable弱缓存
 - (void)saveWeakCache:(NSString *)cacheKey;
 /// 清除缓存
--(void)clearCache:(NSString *)cacheKey;
++ (void)clearCache:(NSString *)cacheKey;
 /// 清除所有缓存
--(void)clearAllCache;
++ (void)clearAllCache;
 
 @end
 
