@@ -21,6 +21,8 @@
 @property (nonatomic, readonly) NSDictionary<NSString *, NSData *> *audiosData;
 @property (nonatomic, readonly) NSArray<SVGAVideoSpriteEntity *> *sprites;
 @property (nonatomic, readonly) NSArray<SVGAAudioEntity *> *audios;
+/** 动画URL */
+@property (nonatomic, copy) NSString *url;
 
 - (instancetype)initWithJSONObject:(NSDictionary *)JSONObject cacheDir:(NSString *)cacheDir;
 - (void)resetImagesWithJSONObject:(NSDictionary *)JSONObject;
@@ -36,6 +38,11 @@
 - (void)saveCache:(NSString *)cacheKey;
 // NSMapTable弱缓存
 - (void)saveWeakCache:(NSString *)cacheKey;
+/// 清除缓存
+-(void)clearCache:(NSString *)cacheKey;
+/// 清除所有缓存
+-(void)clearAllCache;
+
 @end
 
 
