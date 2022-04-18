@@ -21,8 +21,6 @@
 @property (nonatomic, readonly) NSDictionary<NSString *, NSData *> *audiosData;
 @property (nonatomic, readonly) NSArray<SVGAVideoSpriteEntity *> *sprites;
 @property (nonatomic, readonly) NSArray<SVGAAudioEntity *> *audios;
-/** 动画URL */
-@property (nonatomic, copy) NSString *url;
 
 - (instancetype)initWithJSONObject:(NSDictionary *)JSONObject cacheDir:(NSString *)cacheDir;
 - (void)resetImagesWithJSONObject:(NSDictionary *)JSONObject;
