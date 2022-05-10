@@ -32,7 +32,16 @@
 @property (nonatomic, assign) BOOL forwardAnimating;
 @property (nonatomic, assign) BOOL reversing;
 
-@end 
+//转瓶子专用
+/** 是否是转瓶子 */
+@property (nonatomic, assign) BOOL spinBottle;
+/** 总时长 */
+@property (nonatomic, assign) NSTimeInterval duration;
+/** 开始时间 */
+@property (nonatomic, assign) NSTimeInterval beginTime;
+/** 正常阶段 */
+@property (nonatomic, assign) BOOL normal;
+@end
 
 @implementation SVGAPlayer
 
@@ -89,6 +98,13 @@
 }
 
 - (void)startAnimationWithRange:(NSRange)range reverse:(BOOL)reverse {
+    [self startAnimationWithRange:range reverse:reverse spinBottle:NO normal:YES];
+}
+
+- (void)startAnimationWithRange:(NSRange)range
+                        reverse:(BOOL)reverse
+                     spinBottle:(BOOL)spinBottle
+                         normal:(BOOL)normal {
     if (self.videoItem == nil) {
         NSLog(@"videoItem could not be nil！");
         return;
@@ -104,6 +120,8 @@
     
     self.currentRange = range;
     self.reversing = reverse;
+    self.spinBottle = spinBottle;
+    self.normal = normal;
     if (reverse) {
         self.currentFrame = MIN(self.videoItem.frames - 1, range.location + range.length - 1);
     }
@@ -113,7 +131,11 @@
     self.forwardAnimating = !self.reversing;
     self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(next)];
     self.displayLink.frameInterval = 60 / self.videoItem.FPS;
+    // 计算当前范围的时长
+    self.duration = range.length * 1.0 / self.videoItem.FPS;
     [self.displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:self.mainRunLoopMode];
+    // 开始播放的时长
+    self.beginTime = CACurrentMediaTime();
 }
 
 - (void)pauseAnimation {
@@ -360,14 +382,27 @@
 
 - (void)next {
     if (self.reversing) {
-        self.currentFrame--;
+        if (self.spinBottle) {
+            NSTimeInterval currentTime = CACurrentMediaTime() - self.beginTime;
+            CGFloat time = currentTime / self.duration;
+            self.currentFrame = [self getReverseCurrentFrameWithPercentTime:time range:self.currentRange normal:self.normal];
+        }else {
+            self.currentFrame--;
+        }
         if (self.currentFrame < (NSInteger)MAX(0, self.currentRange.location)) {
             self.currentFrame = MIN(self.videoItem.frames - 1, self.currentRange.location + self.currentRange.length - 1);
             self.loopCount++;
         }
     }
     else {
-        self.currentFrame++;
+        if (self.spinBottle) {
+            NSTimeInterval currentTime = CACurrentMediaTime() - self.beginTime;
+            CGFloat time = currentTime / self.duration;
+            self.currentFrame = [self getCurrentFrameWithPercentTime:time range:self.currentRange normal:self.normal];
+        }else {
+            self.currentFrame++;
+        }
+        
         if (self.currentFrame >= MIN(self.videoItem.frames, self.currentRange.location + self.currentRange.length)) {
             self.currentFrame = MAX(0, self.currentRange.location);
             [self clearAudios];
@@ -405,6 +440,48 @@
             }
         }
     }
+}
+
+/// 顺时针获取到当前帧
+- (NSInteger)getCurrentFrameWithPercentTime:(CGFloat)time range:(NSRange)range normal:(BOOL)normal {
+    NSInteger currentFrame = range.location;
+    if(normal) {
+        currentFrame = currentFrame + time * range.length;
+        return currentFrame;
+    }
+    // 因子
+    int factor = 4;
+    // 帧比
+    CGFloat framePercent = 0;
+    if (time > 0.3) {
+        framePercent = cos((0.87 * time + 1) * M_PI + 0.12) / 3 + 0.69;
+    }else if(time > 0.1) {
+        framePercent = 1.0996 * time + 0.1624;
+    }else {
+        framePercent = 0.5 * (1 - pow((1 - time), 1.9 * factor));
+    }
+    currentFrame = currentFrame + framePercent * range.length;
+    return currentFrame;
+}
+
+/// 逆时针获取到当前帧
+- (NSInteger)getReverseCurrentFrameWithPercentTime:(CGFloat)time range:(NSRange)range normal:(BOOL)normal {
+    NSInteger currentFrame = range.location + range.length;
+    if(normal) {
+        currentFrame = currentFrame - time * range.length;
+
+        return currentFrame;
+    }
+  
+    // 帧比
+    CGFloat framePercent = 0;
+    if (time < 0.6) {
+        framePercent = time * time * (3 - 2 * time);
+    }else {
+        framePercent = 0.85 * time + 0.14;
+    }
+    currentFrame = currentFrame - framePercent * range.length;
+    return currentFrame;
 }
 
 - (void)setVideoItem:(SVGAVideoEntity *)videoItem {

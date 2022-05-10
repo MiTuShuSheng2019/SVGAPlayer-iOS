@@ -44,6 +44,18 @@ typedef void(^SVGAPlayerDynamicDrawingBlock)(CALayer *contentLayer, NSInteger fr
 - (void)stepToFrame:(NSInteger)frame andPlay:(BOOL)andPlay;
 - (void)stepToPercentage:(CGFloat)percentage andPlay:(BOOL)andPlay;
 
+/**
+ * 转瓶子专用
+ * @param range 旋转范围
+ * @param reverse 旋转方向
+ * @param spinBottle 转瓶子
+ * @param normal 正常播放阶段
+ */
+- (void)startAnimationWithRange:(NSRange)range
+                        reverse:(BOOL)reverse
+                     spinBottle:(BOOL)spinBottle
+                         normal:(BOOL)normal;
+
 #pragma mark - Dynamic Object
 
 - (void)setImage:(UIImage *)image forKey:(NSString *)aKey;
