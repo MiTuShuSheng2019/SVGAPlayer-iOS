@@ -35,6 +35,8 @@ typedef void(^SVGAPlayerDynamicDrawingBlock)(CALayer *contentLayer, NSInteger fr
 @property (nonatomic, copy) NSRunLoopMode mainRunLoopMode;
 /** 动画URL */
 @property (nonatomic, copy) NSString *url;
+/// 是否静音
+@property (nonatomic, assign) BOOL isMute;
 
 - (void)startAnimation;
 - (void)startAnimationWithRange:(NSRange)range reverse:(BOOL)reverse;
